@@ -1,12 +1,44 @@
-// Инициализация Telegram WebApp
-const tg = window.Telegram.WebApp;
+// ========================================
+// ИНИЦИАЛИЗАЦИЯ TELEGRAM WEBAPP
+// ========================================
 
-// Инициализация приложения
-tg.ready();
-tg.expand();
+// Проверка доступности Telegram WebApp API
+if (typeof window.Telegram === 'undefined' || !window.Telegram.WebApp) {
+    console.error('❌ Telegram WebApp API недоступен!');
+    console.error('Приложение должно открываться через Telegram бота');
+    
+    // Показываем предупреждение пользователю
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.querySelector('.container');
+        if (container) {
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center;">
+                    <h2>⚠️ Приложение недоступно</h2>
+                    <p>Это приложение работает только внутри Telegram.</p>
+                    <p>Откройте бота в Telegram и используйте кнопку "📱 Открыть приложение"</p>
+                </div>
+            `;
+        }
+    });
+}
+
+// Инициализация Telegram WebApp
+const tg = window.Telegram?.WebApp;
+
+if (tg) {
+    // Инициализация приложения
+    tg.ready();
+    tg.expand();
+    
+    console.log('✅ Telegram WebApp инициализирован');
+    console.log('User ID:', tg.initDataUnsafe?.user?.id);
+    console.log('API Version:', tg.version || 'N/A');
+} else {
+    console.error('❌ Не удалось инициализировать Telegram WebApp');
+}
 
 // Получение данных пользователя
-const user = tg.initDataUnsafe?.user;
+const user = tg?.initDataUnsafe?.user;
 
 // Функция переключения вкладок
 function showTab(tabName) {
@@ -176,8 +208,17 @@ if (meetingForm) {
                 tg.HapticFeedback.impactOccurred('light');
             }
 
+            // Логирование для отладки
+            console.log('📤 Отправка данных встречи:', data);
+            console.log('📤 JSON строка:', JSON.stringify(data));
+
             // Отправка данных в бота
+            if (!tg || typeof tg.sendData !== 'function') {
+                throw new Error('Telegram sendData недоступен');
+            }
+            
             tg.sendData(JSON.stringify(data));
+            console.log('✅ Данные отправлены через tg.sendData');
 
             // Показ toast уведомления
             showToast('Встреча создана успешно!');
@@ -319,7 +360,17 @@ if (taskForm) {
                 tg.HapticFeedback.impactOccurred('light');
             }
 
+            // Логирование для отладки
+            console.log('📤 Отправка данных задач:', data);
+            console.log('📤 JSON строка:', JSON.stringify(data));
+
+            // Отправка данных в бота
+            if (!tg || typeof tg.sendData !== 'function') {
+                throw new Error('Telegram sendData недоступен');
+            }
+            
             tg.sendData(JSON.stringify(data));
+            console.log('✅ Данные отправлены через tg.sendData');
             
             const taskCount = tasks.length;
             const message = taskCount === 1 
@@ -418,7 +469,18 @@ if (noteForm) {
                 tg.HapticFeedback.impactOccurred('light');
             }
 
+            // Логирование для отладки
+            console.log('📤 Отправка данных заметки:', data);
+            console.log('📤 JSON строка:', JSON.stringify(data));
+
+            // Отправка данных в бота
+            if (!tg || typeof tg.sendData !== 'function') {
+                throw new Error('Telegram sendData недоступен');
+            }
+            
             tg.sendData(JSON.stringify(data));
+            console.log('✅ Данные отправлены через tg.sendData');
+            
             showToast('Заметка создана успешно!');
             
             noteForm.reset();
@@ -447,4 +509,56 @@ if (noteForm) {
             validateRequiredField('note-title', 'note-title-error');
         });
     }
+}
+
+// ========================================
+// ДИАГНОСТИКА ИНТЕГРАЦИИ
+// ========================================
+
+function diagnoseIntegration() {
+    console.log('=== 🔍 ДИАГНОСТИКА ИНТЕГРАЦИИ ===');
+    
+    const checks = {
+        'Telegram API loaded': !!window.Telegram?.WebApp,
+        'tg initialized': typeof tg !== 'undefined' && tg !== null,
+        'User ID present': !!tg?.initDataUnsafe?.user?.id,
+        'sendData available': typeof tg?.sendData === 'function',
+        'showAlert available': typeof tg?.showAlert === 'function',
+        'close available': typeof tg?.close === 'function',
+        'API Version': tg?.version || 'N/A',
+        'Platform': tg?.platform || 'N/A'
+    };
+    
+    console.table(checks);
+    
+    const criticalChecks = [
+        'Telegram API loaded',
+        'tg initialized',
+        'sendData available'
+    ];
+    
+    const allPassed = criticalChecks.every(key => {
+        const value = checks[key];
+        console.log(`${value ? '✅' : '❌'} ${key}: ${value}`);
+        return value === true;
+    });
+    
+    if (allPassed) {
+        console.log('✅ Все критические проверки пройдены!');
+        console.log('User:', tg?.initDataUnsafe?.user);
+    } else {
+        console.error('❌ Обнаружены критические проблемы - см. таблицу выше');
+        console.error('Приложение должно открываться через Telegram бота');
+    }
+    
+    return allPassed;
+}
+
+// Запуск диагностики при загрузке
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(diagnoseIntegration, 100);
+    });
+} else {
+    setTimeout(diagnoseIntegration, 100);
 }
