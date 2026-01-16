@@ -38,8 +38,14 @@ if (tg) {
 }
 
 // Получение данных пользователя (с несколькими попытками)
+// User ID по умолчанию: 422086090
+const DEFAULT_USER_ID = 422086090;
+
 function getUserData() {
-    if (!tg) return null;
+    if (!tg) {
+        // Если Telegram API недоступен, возвращаем данные по умолчанию
+        return { id: DEFAULT_USER_ID };
+    }
     
     // Способ 1: initDataUnsafe (основной)
     if (tg.initDataUnsafe?.user) {
@@ -72,7 +78,8 @@ function getUserData() {
         }
     }
     
-    return null;
+    // Если ничего не найдено, возвращаем данные по умолчанию
+    return { id: DEFAULT_USER_ID };
 }
 
 // Получение данных пользователя
@@ -194,7 +201,7 @@ function sendDataWithLog(data, actionName) {
     
     // Получаем актуальные данные пользователя перед отправкой
     const currentUser = getUserData();
-    const userId = currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id || 'N/A';
+    const userId = currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id || DEFAULT_USER_ID;
     
     addLogEntry('info', '🚀 Начало отправки', actionName);
     addLogEntry('info', '⏰ Время', new Date().toLocaleString('ru-RU'));
@@ -346,7 +353,7 @@ if (meetingForm) {
             const currentUser = getUserData();
             const data = {
                 action: 'create_meeting',
-                user_id: currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id,
+                user_id: currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id || DEFAULT_USER_ID,
                 type: document.getElementById('meeting-type').value,
                 title: document.getElementById('meeting-title').value,
                 start: startDateTime,
@@ -501,7 +508,7 @@ if (taskForm) {
             const currentUser = getUserData();
             const data = {
                 action: 'create_tasks',
-                user_id: currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id,
+                user_id: currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id || DEFAULT_USER_ID,
                 tasks: tasks.map(task => ({
                     title: task.title,
                     content: task.content || '',
@@ -616,7 +623,7 @@ if (noteForm) {
             const currentUser = getUserData();
             const data = {
                 action: 'create_note',
-                user_id: currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id,
+                user_id: currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id || DEFAULT_USER_ID,
                 title: document.getElementById('note-title').value,
                 content: document.getElementById('note-content').value || ''
             };
