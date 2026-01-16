@@ -25,6 +25,19 @@ if (typeof window.Telegram === 'undefined' || !window.Telegram.WebApp) {
 // Инициализация Telegram WebApp
 const tg = window.Telegram?.WebApp;
 
+// Функция для безопасного использования HapticFeedback
+function triggerHapticFeedback(type = 'light') {
+    try {
+        // Проверяем наличие HapticFeedback и метода impactOccurred
+        if (tg?.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') {
+            tg.HapticFeedback.impactOccurred(type);
+        }
+    } catch (e) {
+        // Игнорируем ошибки, если HapticFeedback не поддерживается
+        console.debug('HapticFeedback не поддерживается в этой версии Telegram');
+    }
+}
+
 if (tg) {
     // Инициализация приложения
     tg.ready();
@@ -335,9 +348,7 @@ if (meetingForm) {
 
         if (!isValidTitle || !isValidStart || !isValidDates) {
             // Haptic feedback для ошибки
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
+            triggerHapticFeedback('medium');
             return;
         }
 
@@ -363,9 +374,7 @@ if (meetingForm) {
             };
 
             // Haptic feedback для успеха
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
-            }
+            triggerHapticFeedback('light');
 
             // Логирование для отладки
             console.log('📤 Отправка данных встречи:', data);
@@ -396,9 +405,7 @@ if (meetingForm) {
             console.error('Error:', error);
             
             // Haptic feedback для ошибки
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('heavy');
-            }
+            triggerHapticFeedback('heavy');
             
             tg.showAlert('Ошибка при создании встречи. Попробуйте еще раз.');
         } finally {
@@ -475,9 +482,7 @@ if (taskForm) {
         const isValidTasks = validateRequiredField('task-titles', 'task-titles-error');
 
         if (!isValidTasks) {
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
+            triggerHapticFeedback('medium');
             return;
         }
 
@@ -489,9 +494,7 @@ if (taskForm) {
             errorElement.textContent = 'Введите хотя бы одну задачу';
             errorElement.classList.add('show');
             document.getElementById('task-titles').classList.add('error');
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
+            triggerHapticFeedback('medium');
             return;
         }
 
@@ -517,9 +520,7 @@ if (taskForm) {
                 }))
             };
 
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
-            }
+            triggerHapticFeedback('light');
 
             // Логирование для отладки
             console.log('📤 Отправка данных задач:', data);
@@ -550,9 +551,7 @@ if (taskForm) {
         } catch (error) {
             console.error('Error:', error);
             
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('heavy');
-            }
+            triggerHapticFeedback('heavy');
             
             tg.showAlert('Ошибка при добавлении задач. Попробуйте еще раз.');
         } finally {
@@ -610,9 +609,7 @@ if (noteForm) {
         const isValidTitle = validateRequiredField('note-title', 'note-title-error');
 
         if (!isValidTitle) {
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
+            triggerHapticFeedback('medium');
             return;
         }
 
@@ -628,9 +625,7 @@ if (noteForm) {
                 content: document.getElementById('note-content').value || ''
             };
 
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
-            }
+            triggerHapticFeedback('light');
 
             // Логирование для отладки
             console.log('📤 Отправка данных заметки:', data);
@@ -656,9 +651,7 @@ if (noteForm) {
         } catch (error) {
             console.error('Error:', error);
             
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('heavy');
-            }
+            triggerHapticFeedback('heavy');
             
             tg.showAlert('Ошибка при создании заметки. Попробуйте еще раз.');
         } finally {
