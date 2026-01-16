@@ -565,3 +565,118 @@ body {
 .form-group:nth-child(6) { animation-delay: 250ms; }
 .form-group:nth-child(7) { animation-delay: 300ms; }
 .form-group:nth-child(8) { animation-delay: 350ms; }
+
+/* Send Log Styles */
+.send-log {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 60vh;
+    background: var(--tg-theme-bg-color);
+    border-top: 2px solid var(--tg-theme-button-color);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.send-log-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--tg-theme-section-separator-color);
+    background: var(--tg-theme-section-bg-color);
+}
+
+.send-log-icon {
+    font-size: 20px;
+    margin-right: 8px;
+}
+
+.send-log-header h3 {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+    color: var(--tg-theme-text-color);
+}
+
+.send-log-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--tg-theme-hint-color);
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.send-log-close:hover {
+    color: var(--tg-theme-text-color);
+}
+
+.send-log-content {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--tg-theme-text-color);
+}
+
+.log-entry {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: var(--tg-theme-secondary-bg-color);
+    border-radius: 6px;
+    border-left: 3px solid var(--tg-theme-link-color);
+    word-wrap: break-word;
+}
+
+.log-entry.success {
+    border-left-color: #34c759;
+}
+
+.log-entry.error {
+    border-left-color: #ff3b30;
+}
+
+.log-entry.warning {
+    border-left-color: #ff9500;
+}
+
+.log-entry.info {
+    border-left-color: var(--tg-theme-link-color);
+}
+
+.log-label {
+    font-weight: 600;
+    color: var(--tg-theme-text-color);
+    margin-right: 8px;
+}
+
+.log-value {
+    color: var(--tg-theme-hint-color);
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+.log-timestamp {
+    font-size: 10px;
+    color: var(--tg-theme-hint-color);
+    margin-top: 4px;
+    opacity: 0.7;
+}

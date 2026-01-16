@@ -156,6 +156,16 @@
         <p>Обработка...</p>
     </div>
 
+    <!-- Область для отображения лога отправки -->
+    <div id="send-log" class="send-log" style="display: none;">
+        <div class="send-log-header">
+            <span class="send-log-icon">📋</span>
+            <h3>Лог отправки</h3>
+            <button class="send-log-close" onclick="closeSendLog()" aria-label="Закрыть лог">✕</button>
+        </div>
+        <div id="send-log-content" class="send-log-content"></div>
+    </div>
+
     <script src="js/app.js"></script>
 </body>
 </html>

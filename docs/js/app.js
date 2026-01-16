@@ -90,6 +90,109 @@ function showToast(message) {
     }, 3000);
 }
 
+// Функции для работы с логом отправки
+function showSendLog() {
+    const logElement = document.getElementById('send-log');
+    if (logElement) {
+        logElement.style.display = 'flex';
+    }
+}
+
+function closeSendLog() {
+    const logElement = document.getElementById('send-log');
+    if (logElement) {
+        logElement.style.display = 'none';
+    }
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function addLogEntry(type, label, value) {
+    const logContent = document.getElementById('send-log-content');
+    if (!logContent) return;
+
+    const timestamp = new Date().toLocaleTimeString('ru-RU');
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    
+    let displayValue = value;
+    if (typeof value === 'object') {
+        displayValue = JSON.stringify(value, null, 2);
+    }
+    
+    entry.innerHTML = `
+        <div>
+            <span class="log-label">${label}:</span>
+            <span class="log-value">${escapeHtml(String(displayValue))}</span>
+        </div>
+        <div class="log-timestamp">${timestamp}</div>
+    `;
+    
+    logContent.appendChild(entry);
+    logContent.scrollTop = logContent.scrollHeight;
+}
+
+function clearSendLog() {
+    const logContent = document.getElementById('send-log-content');
+    if (logContent) {
+        logContent.innerHTML = '';
+    }
+}
+
+// Обновленная функция отправки данных с подробным логированием
+function sendDataWithLog(data, actionName) {
+    // Показываем область лога
+    clearSendLog();
+    showSendLog();
+    
+    addLogEntry('info', '🚀 Начало отправки', actionName);
+    addLogEntry('info', '⏰ Время', new Date().toLocaleString('ru-RU'));
+    addLogEntry('info', '👤 User ID', user?.id || 'N/A');
+    addLogEntry('info', '📤 Action', data.action || 'N/A');
+    
+    // Логируем все данные
+    addLogEntry('info', '📋 Полные данные', data);
+    
+    // Проверка доступности sendData
+    if (!tg || typeof tg.sendData !== 'function') {
+        addLogEntry('error', '❌ Ошибка', 'Telegram sendData недоступен');
+        throw new Error('Telegram sendData недоступен');
+    }
+    
+    const jsonString = JSON.stringify(data);
+    addLogEntry('info', '📦 JSON строка', jsonString);
+    addLogEntry('info', '📏 Размер данных', `${jsonString.length} байт`);
+    
+    try {
+        tg.sendData(jsonString);
+        addLogEntry('success', '✅ sendData вызван', 'Данные отправлены через Telegram API');
+        addLogEntry('info', '🎯 Метод отправки', 'tg.sendData() → message.web_app_data');
+        addLogEntry('info', '📨 Получатель', 'Telegram Bot (web_app_data handler)');
+        
+        // Показываем MainButton для подтверждения
+        if (tg.MainButton) {
+            tg.MainButton.show();
+            tg.MainButton.setText('Данные отправлены');
+            addLogEntry('info', '🔘 MainButton', 'Показан с текстом "Данные отправлены"');
+        }
+    } catch (error) {
+        addLogEntry('error', '❌ Ошибка sendData', error.message);
+        if (error.stack) {
+            addLogEntry('error', '📋 Stack trace', error.stack);
+        }
+        throw error;
+    }
+}
+
 // Функция валидации обязательных полей
 function validateRequiredField(fieldId, errorId) {
     const field = document.getElementById(fieldId);
@@ -212,24 +315,13 @@ if (meetingForm) {
             console.log('📤 Отправка данных встречи:', data);
             console.log('📤 JSON строка:', JSON.stringify(data));
 
-            // Отправка данных в бота
-            if (!tg || typeof tg.sendData !== 'function') {
-                throw new Error('Telegram sendData недоступен');
-            }
-            
+            // Отправка данных в бота с подробным логом
             try {
-                tg.sendData(JSON.stringify(data));
-                console.log('✅ sendData вызван успешно');
-                
-                // Показываем MainButton для подтверждения отправки (если доступен)
-                if (tg.MainButton) {
-                    tg.MainButton.show();
-                    tg.MainButton.setText('Данные отправлены');
-                }
+                sendDataWithLog(data, 'Создание встречи в Google Calendar');
             } catch (error) {
                 console.error('❌ Ошибка sendData:', error);
                 tg.showAlert('Ошибка отправки данных: ' + error.message);
-                throw error; // Пробрасываем ошибку дальше для обработки в catch блоке
+                throw error;
             }
 
             // Показ toast уведомления
@@ -376,24 +468,13 @@ if (taskForm) {
             console.log('📤 Отправка данных задач:', data);
             console.log('📤 JSON строка:', JSON.stringify(data));
 
-            // Отправка данных в бота
-            if (!tg || typeof tg.sendData !== 'function') {
-                throw new Error('Telegram sendData недоступен');
-            }
-            
+            // Отправка данных в бота с подробным логом
             try {
-                tg.sendData(JSON.stringify(data));
-                console.log('✅ sendData вызван успешно');
-                
-                // Показываем MainButton для подтверждения отправки (если доступен)
-                if (tg.MainButton) {
-                    tg.MainButton.show();
-                    tg.MainButton.setText('Данные отправлены');
-                }
+                sendDataWithLog(data, 'Создание задач в TickTick');
             } catch (error) {
                 console.error('❌ Ошибка sendData:', error);
                 tg.showAlert('Ошибка отправки данных: ' + error.message);
-                throw error; // Пробрасываем ошибку дальше для обработки в catch блоке
+                throw error;
             }
             
             const taskCount = tasks.length;
@@ -497,24 +578,13 @@ if (noteForm) {
             console.log('📤 Отправка данных заметки:', data);
             console.log('📤 JSON строка:', JSON.stringify(data));
 
-            // Отправка данных в бота
-            if (!tg || typeof tg.sendData !== 'function') {
-                throw new Error('Telegram sendData недоступен');
-            }
-            
+            // Отправка данных в бота с подробным логом
             try {
-                tg.sendData(JSON.stringify(data));
-                console.log('✅ sendData вызван успешно');
-                
-                // Показываем MainButton для подтверждения отправки (если доступен)
-                if (tg.MainButton) {
-                    tg.MainButton.show();
-                    tg.MainButton.setText('Данные отправлены');
-                }
+                sendDataWithLog(data, 'Создание заметки в базе знаний');
             } catch (error) {
                 console.error('❌ Ошибка sendData:', error);
                 tg.showAlert('Ошибка отправки данных: ' + error.message);
-                throw error; // Пробрасываем ошибку дальше для обработки в catch блоке
+                throw error;
             }
             
             showToast('Заметка создана успешно!');
