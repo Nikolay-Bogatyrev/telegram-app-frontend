@@ -86,18 +86,34 @@
             <div id="task-tab" class="tab-content" role="tabpanel" aria-labelledby="task-tab">
                 <form id="task-form" class="form" name="task-form">
                     <div class="form-group">
-                        <label for="task-title">Название задачи <span class="required">*</span></label>
-                        <input type="text" id="task-title" name="title" placeholder="Например: Купить молоко" required aria-required="true">
-                        <small class="error-message" id="task-title-error"></small>
+                        <label for="task-titles">Задачи <span class="required">*</span></label>
+                        <textarea id="task-titles" name="titles" rows="6" placeholder="Введите задачи, каждая с новой строки:&#10;Купить молоко&#10;Позвонить клиенту&#10;Встреча с командой | Обсудить планы" required aria-required="true"></textarea>
+                        <small class="hint">
+                            <span class="hint-icon">💡</span>
+                            Каждая строка = одна задача. Для описания используйте разделитель "|"
+                        </small>
+                        <small class="error-message" id="task-titles-error"></small>
                     </div>
 
                     <div class="form-group">
-                        <label for="task-desc">Описание задачи</label>
-                        <textarea id="task-desc" name="description" rows="4" placeholder="Дополнительная информация о задаче"></textarea>
+                        <label for="task-priority">Приоритет</label>
+                        <select id="task-priority" name="priority">
+                            <option value="0">Нет приоритета</option>
+                            <option value="1">Низкий</option>
+                            <option value="2" selected>Средний</option>
+                            <option value="3">Высокий</option>
+                        </select>
+                        <small class="hint">Приоритет будет применен ко всем задачам</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="task-due-date">Дата выполнения</label>
+                        <input type="datetime-local" id="task-due-date" name="due_date">
+                        <small class="hint">Дата будет применена ко всем задачам (опционально)</small>
                     </div>
 
                     <button type="submit" class="btn btn-primary" id="task-submit">
-                        <span class="btn-text">Добавить задачу</span>
+                        <span class="btn-text">Добавить задачи</span>
                     </button>
                 </form>
             </div>

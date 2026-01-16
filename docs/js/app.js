@@ -236,6 +236,30 @@ if (meetingForm) {
     if (meetingEnd) meetingEnd.setAttribute('min', today);
 }
 
+// Функция парсинга задач из текста
+function parseTasks(tasksText) {
+    const lines = tasksText.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+    
+    const tasks = [];
+    
+    for (const line of lines) {
+        const parts = line.split('|').map(part => part.trim());
+        const title = parts[0];
+        const content = parts.length > 1 ? parts.slice(1).join(' | ') : '';
+        
+        if (title) {
+            tasks.push({
+                title: title,
+                content: content
+            });
+        }
+    }
+    
+    return tasks;
+}
+
 // Обработка формы задачи
 const taskForm = document.getElementById('task-form');
 if (taskForm) {
@@ -246,9 +270,24 @@ if (taskForm) {
         clearFormErrors('task-form');
 
         // Валидация обязательных полей
-        const isValidTitle = validateRequiredField('task-title', 'task-title-error');
+        const tasksText = document.getElementById('task-titles').value.trim();
+        const isValidTasks = validateRequiredField('task-titles', 'task-titles-error');
 
-        if (!isValidTitle) {
+        if (!isValidTasks) {
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+            return;
+        }
+
+        // Парсинг задач
+        const tasks = parseTasks(tasksText);
+        
+        if (tasks.length === 0) {
+            const errorElement = document.getElementById('task-titles-error');
+            errorElement.textContent = 'Введите хотя бы одну задачу';
+            errorElement.classList.add('show');
+            document.getElementById('task-titles').classList.add('error');
             if (tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('medium');
             }
@@ -259,11 +298,21 @@ if (taskForm) {
         showLoader();
 
         try {
+            // Получение общих параметров
+            const priority = parseInt(document.getElementById('task-priority').value) || 0;
+            const dueDateInput = document.getElementById('task-due-date');
+            const dueDate = dueDateInput.value ? new Date(dueDateInput.value).toISOString() : '';
+
+            // Формирование данных для всех задач
             const data = {
-                action: 'create_task',
+                action: 'create_tasks',
                 user_id: user?.id,
-                title: document.getElementById('task-title').value,
-                description: document.getElementById('task-desc').value || ''
+                tasks: tasks.map(task => ({
+                    title: task.title,
+                    content: task.content || '',
+                    priority: priority,
+                    due_date: dueDate
+                }))
             };
 
             if (tg.HapticFeedback) {
@@ -271,9 +320,15 @@ if (taskForm) {
             }
 
             tg.sendData(JSON.stringify(data));
-            showToast('Задача добавлена успешно!');
+            
+            const taskCount = tasks.length;
+            const message = taskCount === 1 
+                ? 'Задача добавлена успешно!' 
+                : `Добавлено задач: ${taskCount}`;
+            showToast(message);
             
             taskForm.reset();
+            document.getElementById('task-priority').value = '2';
             
             setTimeout(() => {
                 tg.close();
@@ -286,7 +341,7 @@ if (taskForm) {
                 tg.HapticFeedback.impactOccurred('heavy');
             }
             
-            tg.showAlert('Ошибка при добавлении задачи. Попробуйте еще раз.');
+            tg.showAlert('Ошибка при добавлении задач. Попробуйте еще раз.');
         } finally {
             hideLoader();
             setButtonLoading('task-submit', false);
@@ -294,10 +349,38 @@ if (taskForm) {
     });
 
     // Валидация в реальном времени
-    if (document.getElementById('task-title')) {
-        document.getElementById('task-title').addEventListener('blur', () => {
-            validateRequiredField('task-title', 'task-title-error');
+    const taskTitlesField = document.getElementById('task-titles');
+    if (taskTitlesField) {
+        taskTitlesField.addEventListener('blur', () => {
+            const tasksText = taskTitlesField.value.trim();
+            const errorElement = document.getElementById('task-titles-error');
+            
+            if (!tasksText) {
+                validateRequiredField('task-titles', 'task-titles-error');
+            } else {
+                const tasks = parseTasks(tasksText);
+                if (tasks.length === 0) {
+                    if (errorElement) {
+                        errorElement.textContent = 'Введите хотя бы одну задачу';
+                        errorElement.classList.add('show');
+                    }
+                    taskTitlesField.classList.add('error');
+                } else {
+                    if (errorElement) {
+                        errorElement.classList.remove('show');
+                    }
+                    taskTitlesField.classList.remove('error');
+                }
+            }
         });
+    }
+
+    // Установка минимальной даты на сегодня
+    const taskDueDate = document.getElementById('task-due-date');
+    if (taskDueDate) {
+        const now = new Date();
+        const today = now.toISOString().slice(0, 16);
+        taskDueDate.setAttribute('min', today);
     }
 }
 
