@@ -3,117 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Personal Knowledge Base</title>
+    <title>База Знаний</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1>📚 Personal Knowledge Base</h1>
+            <span class="header-icon">📚</span>
+            <h1>База Знаний</h1>
+            <span class="header-info" aria-label="Информация">ℹ️</span>
         </header>
 
-        <!-- Вкладки -->
-        <div class="tabs">
-            <button class="tab active" data-tab="meeting" onclick="showTab('meeting')">
-                📅 Встречи
+        <nav class="tabs" role="tablist">
+            <button class="tab active" data-tab="meeting" role="tab" aria-selected="true" aria-controls="meeting-tab" onclick="showTab('meeting')">
+                <span class="tab-icon">📅</span>
+                <span class="tab-text">Встречи</span>
+                <span class="tab-indicator"></span>
             </button>
-            <button class="tab" data-tab="task" onclick="showTab('task')">
-                ✅ Задачи
+            <button class="tab" data-tab="task" role="tab" aria-selected="false" aria-controls="task-tab" onclick="showTab('task')">
+                <span class="tab-icon">✅</span>
+                <span class="tab-text">Задачи</span>
+                <span class="tab-indicator"></span>
             </button>
-            <button class="tab" data-tab="note" onclick="showTab('note')">
-                📄 Заметки
+            <button class="tab" data-tab="note" role="tab" aria-selected="false" aria-controls="note-tab" onclick="showTab('note')">
+                <span class="tab-icon">📄</span>
+                <span class="tab-text">Заметки</span>
+                <span class="tab-indicator"></span>
             </button>
-        </div>
+        </nav>
 
-        <!-- Форма встречи -->
-        <div id="meeting-tab" class="tab-content active">
-            <form id="meeting-form" class="form">
-                <div class="form-group">
-                    <label for="meeting-type">Тип встречи</label>
-                    <select id="meeting-type" required>
-                        <option value="work">Рабочая</option>
-                        <option value="family">Семейная</option>
-                        <option value="meeting">Личная</option>
-                    </select>
-                </div>
+        <main class="content-area">
+            <!-- Форма встречи -->
+            <div id="meeting-tab" class="tab-content active" role="tabpanel" aria-labelledby="meeting-tab">
+                <form id="meeting-form" class="form" name="meeting-form">
+                    <div class="form-group">
+                        <label for="meeting-type">Тип встречи</label>
+                        <select id="meeting-type" name="type" required aria-required="true">
+                            <option value="work">Рабочая</option>
+                            <option value="family">Семейная</option>
+                            <option value="meeting">Личная</option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label for="meeting-title">Название встречи *</label>
-                    <input type="text" id="meeting-title" placeholder="Например: Встреча с командой" required>
-                </div>
+                    <div class="form-group">
+                        <label for="meeting-title">Название встречи <span class="required">*</span></label>
+                        <input type="text" id="meeting-title" name="title" placeholder="Например: Встреча с командой" required aria-required="true">
+                        <small class="error-message" id="meeting-title-error"></small>
+                    </div>
 
-                <div class="form-group">
-                    <label for="meeting-start">Дата и время начала *</label>
-                    <input type="datetime-local" id="meeting-start" required>
-                </div>
+                    <div class="form-group">
+                        <label for="meeting-start">Дата и время начала <span class="required">*</span></label>
+                        <input type="datetime-local" id="meeting-start" name="start" required aria-required="true">
+                        <small class="error-message" id="meeting-start-error"></small>
+                    </div>
 
-                <div class="form-group">
-                    <label for="meeting-end">Дата и время окончания *</label>
-                    <input type="datetime-local" id="meeting-end" required>
-                    <small class="error-message" id="date-error"></small>
-                </div>
+                    <div class="form-group">
+                        <label for="meeting-end">Дата и время окончания <span class="required">*</span></label>
+                        <input type="datetime-local" id="meeting-end" name="end" required aria-required="true">
+                        <small class="error-message" id="date-error"></small>
+                    </div>
 
-                <div class="form-group">
-                    <label for="meeting-desc">Описание</label>
-                    <textarea id="meeting-desc" rows="3" placeholder="Дополнительная информация о встрече"></textarea>
-                </div>
+                    <div class="form-group">
+                        <label for="meeting-desc">Описание</label>
+                        <textarea id="meeting-desc" name="description" rows="3" placeholder="Дополнительная информация о встрече"></textarea>
+                    </div>
 
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="meeting-online" checked>
-                        <span>Онлайн встреча</span>
-                    </label>
-                </div>
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="meeting-online" name="online" checked>
+                            <span>Онлайн встреча</span>
+                        </label>
+                    </div>
 
-                <button type="submit" class="btn btn-primary" id="meeting-submit">
-                    Создать встречу
-                </button>
-            </form>
-        </div>
+                    <button type="submit" class="btn btn-primary" id="meeting-submit">
+                        <span class="btn-text">Создать встречу</span>
+                    </button>
+                </form>
+            </div>
 
-        <!-- Форма задачи -->
-        <div id="task-tab" class="tab-content">
-            <form id="task-form" class="form">
-                <div class="form-group">
-                    <label for="task-title">Название задачи *</label>
-                    <input type="text" id="task-title" placeholder="Например: Купить молоко" required>
-                </div>
+            <!-- Форма задачи -->
+            <div id="task-tab" class="tab-content" role="tabpanel" aria-labelledby="task-tab">
+                <form id="task-form" class="form" name="task-form">
+                    <div class="form-group">
+                        <label for="task-title">Название задачи <span class="required">*</span></label>
+                        <input type="text" id="task-title" name="title" placeholder="Например: Купить молоко" required aria-required="true">
+                        <small class="error-message" id="task-title-error"></small>
+                    </div>
 
-                <div class="form-group">
-                    <label for="task-desc">Описание</label>
-                    <textarea id="task-desc" rows="4" placeholder="Дополнительная информация о задаче"></textarea>
-                </div>
+                    <div class="form-group">
+                        <label for="task-desc">Описание задачи</label>
+                        <textarea id="task-desc" name="description" rows="4" placeholder="Дополнительная информация о задаче"></textarea>
+                    </div>
 
-                <button type="submit" class="btn btn-primary" id="task-submit">
-                    Добавить задачу
-                </button>
-            </form>
-        </div>
+                    <button type="submit" class="btn btn-primary" id="task-submit">
+                        <span class="btn-text">Добавить задачу</span>
+                    </button>
+                </form>
+            </div>
 
-        <!-- Форма заметки -->
-        <div id="note-tab" class="tab-content">
-            <form id="note-form" class="form">
-                <div class="form-group">
-                    <label for="note-title">Название заметки *</label>
-                    <input type="text" id="note-title" placeholder="Например: Обсуждение с Денисом" required>
-                </div>
+            <!-- Форма заметки -->
+            <div id="note-tab" class="tab-content" role="tabpanel" aria-labelledby="note-tab">
+                <form id="note-form" class="form" name="note-form">
+                    <div class="form-group">
+                        <label for="note-title">Название заметки <span class="required">*</span></label>
+                        <input type="text" id="note-title" name="title" placeholder="Например: Обсуждение с Денисом" required aria-required="true">
+                        <small class="error-message" id="note-title-error"></small>
+                    </div>
 
-                <div class="form-group">
-                    <label for="note-content">Содержание</label>
-                    <textarea id="note-content" rows="5" placeholder="Используйте @ для упоминания людей (например: @Денис, @Екатерина)"></textarea>
-                    <small class="hint">Упомянутые люди автоматически будут добавлены в связанные контакты</small>
-                </div>
+                    <div class="form-group">
+                        <label for="note-content">Содержание</label>
+                        <textarea id="note-content" name="content" rows="5" placeholder="Используйте @ для упоминания людей (например: @Денис, @Екатерина)"></textarea>
+                        <small class="hint">
+                            <span class="hint-icon">💡</span>
+                            Используйте @ для упоминания людей
+                        </small>
+                    </div>
 
-                <button type="submit" class="btn btn-primary" id="note-submit">
-                    Создать заметку
-                </button>
-            </form>
-        </div>
+                    <button type="submit" class="btn btn-primary" id="note-submit">
+                        <span class="btn-text">Создать заметку</span>
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast hidden" role="alert" aria-live="polite">
+        <span class="toast-icon">✓</span>
+        <span class="toast-message"></span>
     </div>
 
     <!-- Loader -->
-    <div id="loader" class="loader hidden">
+    <div id="loader" class="loader hidden" role="status" aria-label="Обработка">
         <div class="spinner"></div>
         <p>Обработка...</p>
     </div>
