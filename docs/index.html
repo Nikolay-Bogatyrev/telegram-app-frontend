@@ -47,26 +47,15 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="meeting-title">Название встречи <span class="required">*</span></label>
-                        <input type="text" id="meeting-title" name="title" placeholder="Например: Встреча с командой" required aria-required="true">
-                        <small class="error-message" id="meeting-title-error"></small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="meeting-start">Дата и время начала <span class="required">*</span></label>
-                        <input type="datetime-local" id="meeting-start" name="start" required aria-required="true">
-                        <small class="error-message" id="meeting-start-error"></small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="meeting-end">Дата и время окончания <span class="required">*</span></label>
-                        <input type="datetime-local" id="meeting-end" name="end" required aria-required="true">
-                        <small class="error-message" id="date-error"></small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="meeting-desc">Описание</label>
-                        <textarea id="meeting-desc" name="description" rows="3" placeholder="Дополнительная информация о встрече"></textarea>
+                        <label for="meeting-input">Встречи <span class="required">*</span></label>
+                        <textarea id="meeting-input" name="meetings" rows="6" 
+                                  placeholder="Введите встречи, каждая с новой строки:&#10;26 января 15.00 Стоматолог&#10;27 января 10:00 Встреча с командой&#10;28 января 14.30 Врач" 
+                                  required aria-required="true"></textarea>
+                        <small class="hint">
+                            <span class="hint-icon">💡</span>
+                            Каждая строка = одна встреча. Формат: "26 января 15.00 Название"
+                        </small>
+                        <small class="error-message" id="meeting-input-error"></small>
                     </div>
 
                     <div class="form-group checkbox-group">
@@ -77,7 +66,7 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary" id="meeting-submit">
-                        <span class="btn-text">Создать встречу</span>
+                        <span class="btn-text">Создать встречи</span>
                     </button>
                 </form>
             </div>

@@ -342,106 +342,215 @@ if (meetingForm) {
         clearFormErrors('meeting-form');
 
         // Валидация обязательных полей
-        const isValidTitle = validateRequiredField('meeting-title', 'meeting-title-error');
-        const isValidStart = validateRequiredField('meeting-start', 'meeting-start-error');
-        const isValidDates = validateDates('meeting-start', 'meeting-end');
+        const meetingsText = document.getElementById('meeting-input').value.trim();
+        const isValidMeetings = validateRequiredField('meeting-input', 'meeting-input-error');
 
-        if (!isValidTitle || !isValidStart || !isValidDates) {
-            // Haptic feedback для ошибки
+        if (!isValidMeetings) {
             triggerHapticFeedback('medium');
             return;
         }
 
-        // Установка состояния загрузки
+        // Парсинг встреч
+        const meetings = parseMeetings(meetingsText);
+        
+        if (meetings.length === 0) {
+            const errorElement = document.getElementById('meeting-input-error');
+            errorElement.textContent = 'Не удалось распознать встречи. Формат: "26 января 15.00 Название"';
+            errorElement.classList.add('show');
+            document.getElementById('meeting-input').classList.add('error');
+            triggerHapticFeedback('medium');
+            return;
+        }
+
         setButtonLoading('meeting-submit', true);
         showLoader();
 
         try {
-            // Формирование данных
-            const startDateTime = document.getElementById('meeting-start').value.replace('T', ' ');
-            const endDateTime = document.getElementById('meeting-end').value.replace('T', ' ');
-
             const currentUser = getUserData();
+            const meetingType = document.getElementById('meeting-type').value;
+            const isOnline = document.getElementById('meeting-online').checked;
+
+            // Формирование данных для всех встреч
             const data = {
-                action: 'create_meeting',
+                action: 'create_meetings',
                 user_id: currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id || DEFAULT_USER_ID,
-                type: document.getElementById('meeting-type').value,
-                title: document.getElementById('meeting-title').value,
-                start: startDateTime,
-                end: endDateTime,
-                description: document.getElementById('meeting-desc').value || '',
-                online: document.getElementById('meeting-online').checked
+                meetings: meetings.map(meeting => ({
+                    type: meetingType,
+                    title: meeting.title,
+                    start: meeting.start,
+                    end: meeting.end,
+                    description: '',
+                    online: isOnline
+                }))
             };
 
-            // Haptic feedback для успеха
             triggerHapticFeedback('light');
-
-            // Логирование для отладки
-            console.log('📤 Отправка данных встречи:', data);
-            console.log('📤 JSON строка:', JSON.stringify(data));
 
             // Отправка данных в бота с подробным логом
             try {
-                sendDataWithLog(data, 'Создание встречи в Google Calendar');
+                sendDataWithLog(data, 'Создание встреч в Google Calendar');
             } catch (error) {
                 console.error('❌ Ошибка sendData:', error);
                 tg.showAlert('Ошибка отправки данных: ' + error.message);
                 throw error;
             }
-
-            // Показ toast уведомления
-            showToast('Встреча создана успешно!');
             
-            // Очистка формы
+            const meetingCount = meetings.length;
+            const message = meetingCount === 1 
+                ? 'Встреча создана успешно!' 
+                : `Создано встреч: ${meetingCount}`;
+            showToast(message);
+            
             meetingForm.reset();
             document.getElementById('meeting-online').checked = true;
             
-            // Закрытие приложения через 1.5 секунды
             setTimeout(() => {
                 tg.close();
             }, 1500);
 
         } catch (error) {
             console.error('Error:', error);
-            
-            // Haptic feedback для ошибки
             triggerHapticFeedback('heavy');
-            
-            tg.showAlert('Ошибка при создании встречи. Попробуйте еще раз.');
+            tg.showAlert('Ошибка при создании встреч. Попробуйте еще раз.');
         } finally {
             hideLoader();
             setButtonLoading('meeting-submit', false);
         }
     });
 
-    // Валидация дат в реальном времени
-    const meetingStart = document.getElementById('meeting-start');
-    const meetingEnd = document.getElementById('meeting-end');
-    
-    if (meetingStart) {
-        meetingStart.addEventListener('change', () => {
-            validateDates('meeting-start', 'meeting-end');
+    // Валидация в реальном времени
+    const meetingInput = document.getElementById('meeting-input');
+    if (meetingInput) {
+        meetingInput.addEventListener('blur', () => {
+            const meetingsText = meetingInput.value.trim();
+            const errorElement = document.getElementById('meeting-input-error');
+            
+            if (!meetingsText) {
+                validateRequiredField('meeting-input', 'meeting-input-error');
+            } else {
+                const meetings = parseMeetings(meetingsText);
+                if (meetings.length === 0) {
+                    if (errorElement) {
+                        errorElement.textContent = 'Не удалось распознать встречи. Формат: "26 января 15.00 Название"';
+                        errorElement.classList.add('show');
+                    }
+                    meetingInput.classList.add('error');
+                } else {
+                    if (errorElement) {
+                        errorElement.classList.remove('show');
+                    }
+                    meetingInput.classList.remove('error');
+                }
+            }
         });
     }
-    
-    if (meetingEnd) {
-        meetingEnd.addEventListener('change', () => {
-            validateDates('meeting-start', 'meeting-end');
-        });
-    }
+}
 
-    // Валидация обязательных полей в реальном времени
-    if (document.getElementById('meeting-title')) {
-        document.getElementById('meeting-title').addEventListener('blur', () => {
-            validateRequiredField('meeting-title', 'meeting-title-error');
-        });
-    }
+// Словарь месяцев на русском
+const MONTHS_RU = {
+    'января': 1, 'февраля': 2, 'марта': 3, 'апреля': 4,
+    'мая': 5, 'июня': 6, 'июля': 7, 'августа': 8,
+    'сентября': 9, 'октября': 10, 'ноября': 11, 'декабря': 12,
+    'янв': 1, 'фев': 2, 'мар': 3, 'апр': 4,
+    'июн': 6, 'июл': 7, 'авг': 8, 'сен': 9,
+    'окт': 10, 'ноя': 11, 'дек': 12
+};
 
-    // Установка минимальной даты на сегодня
-    const now = new Date();
-    const today = now.toISOString().slice(0, 16);
-    if (meetingStart) meetingStart.setAttribute('min', today);
-    if (meetingEnd) meetingEnd.setAttribute('min', today);
+// Функция форматирования даты для API (YYYY-MM-DD HH:MM)
+function formatDateTimeForAPI(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+// Парсинг одной встречи из текста
+function parseSingleMeeting(text) {
+    if (!text || !text.trim()) return null;
+    
+    text = text.trim();
+    
+    // Паттерн 1: "26 января 15.00 Название" или "26 января 15:00 Название" или "26 января в 15:00 Название"
+    const pattern1 = /(\d{1,2})\s+(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря|янв|фев|мар|апр|июн|июл|авг|сен|окт|ноя|дек)\s+(?:в\s+)?(\d{1,2})[.:](\d{2})\s+(.+)/i;
+    
+    // Паттерн 2: "26.01 15.00 Название" или "26/01 15:00 Название"
+    const pattern2 = /(\d{1,2})[./](\d{1,2})\s+(?:в\s+)?(\d{1,2})[.:](\d{2})\s+(.+)/i;
+    
+    let match = text.match(pattern1);
+    if (match) {
+        const day = parseInt(match[1]);
+        const monthName = match[2].toLowerCase();
+        const hour = parseInt(match[3]);
+        const minute = parseInt(match[4]);
+        const title = match[5].trim();
+        const month = MONTHS_RU[monthName];
+        
+        if (month) {
+            const now = new Date();
+            let year = now.getFullYear();
+            let eventDate = new Date(year, month - 1, day, hour, minute);
+            
+            // Если дата уже прошла в этом году, берем следующий год
+            if (eventDate < now) {
+                eventDate = new Date(year + 1, month - 1, day, hour, minute);
+            }
+            
+            return {
+                title: title,
+                start: eventDate,
+                end: new Date(eventDate.getTime() + 60 * 60 * 1000) // +60 минут
+            };
+        }
+    }
+    
+    match = text.match(pattern2);
+    if (match) {
+        const day = parseInt(match[1]);
+        const month = parseInt(match[2]);
+        const hour = parseInt(match[3]);
+        const minute = parseInt(match[4]);
+        const title = match[5].trim();
+        
+        const now = new Date();
+        let year = now.getFullYear();
+        let eventDate = new Date(year, month - 1, day, hour, minute);
+        
+        if (eventDate < now) {
+            eventDate = new Date(year + 1, month - 1, day, hour, minute);
+        }
+        
+        return {
+            title: title,
+            start: eventDate,
+            end: new Date(eventDate.getTime() + 60 * 60 * 1000)
+        };
+    }
+    
+    return null;
+}
+
+// Функция парсинга встреч из текста (аналогично parseTasks)
+function parseMeetings(meetingsText) {
+    const lines = meetingsText.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+    
+    const meetings = [];
+    
+    for (const line of lines) {
+        const parsed = parseSingleMeeting(line);
+        if (parsed) {
+            meetings.push({
+                title: parsed.title,
+                start: formatDateTimeForAPI(parsed.start),
+                end: formatDateTimeForAPI(parsed.end)
+            });
+        }
+    }
+    
+    return meetings;
 }
 
 // Функция парсинга задач из текста
