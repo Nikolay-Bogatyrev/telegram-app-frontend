@@ -217,8 +217,20 @@ if (meetingForm) {
                 throw new Error('Telegram sendData недоступен');
             }
             
-            tg.sendData(JSON.stringify(data));
-            console.log('✅ Данные отправлены через tg.sendData');
+            try {
+                tg.sendData(JSON.stringify(data));
+                console.log('✅ sendData вызван успешно');
+                
+                // Показываем MainButton для подтверждения отправки (если доступен)
+                if (tg.MainButton) {
+                    tg.MainButton.show();
+                    tg.MainButton.setText('Данные отправлены');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка sendData:', error);
+                tg.showAlert('Ошибка отправки данных: ' + error.message);
+                throw error; // Пробрасываем ошибку дальше для обработки в catch блоке
+            }
 
             // Показ toast уведомления
             showToast('Встреча создана успешно!');
@@ -369,8 +381,20 @@ if (taskForm) {
                 throw new Error('Telegram sendData недоступен');
             }
             
-            tg.sendData(JSON.stringify(data));
-            console.log('✅ Данные отправлены через tg.sendData');
+            try {
+                tg.sendData(JSON.stringify(data));
+                console.log('✅ sendData вызван успешно');
+                
+                // Показываем MainButton для подтверждения отправки (если доступен)
+                if (tg.MainButton) {
+                    tg.MainButton.show();
+                    tg.MainButton.setText('Данные отправлены');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка sendData:', error);
+                tg.showAlert('Ошибка отправки данных: ' + error.message);
+                throw error; // Пробрасываем ошибку дальше для обработки в catch блоке
+            }
             
             const taskCount = tasks.length;
             const message = taskCount === 1 
@@ -478,8 +502,20 @@ if (noteForm) {
                 throw new Error('Telegram sendData недоступен');
             }
             
-            tg.sendData(JSON.stringify(data));
-            console.log('✅ Данные отправлены через tg.sendData');
+            try {
+                tg.sendData(JSON.stringify(data));
+                console.log('✅ sendData вызван успешно');
+                
+                // Показываем MainButton для подтверждения отправки (если доступен)
+                if (tg.MainButton) {
+                    tg.MainButton.show();
+                    tg.MainButton.setText('Данные отправлены');
+                }
+            } catch (error) {
+                console.error('❌ Ошибка sendData:', error);
+                tg.showAlert('Ошибка отправки данных: ' + error.message);
+                throw error; // Пробрасываем ошибку дальше для обработки в catch блоке
+            }
             
             showToast('Заметка создана успешно!');
             
