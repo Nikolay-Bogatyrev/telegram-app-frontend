@@ -37,8 +37,46 @@ if (tg) {
     console.error('❌ Не удалось инициализировать Telegram WebApp');
 }
 
+// Получение данных пользователя (с несколькими попытками)
+function getUserData() {
+    if (!tg) return null;
+    
+    // Способ 1: initDataUnsafe (основной)
+    if (tg.initDataUnsafe?.user) {
+        return tg.initDataUnsafe.user;
+    }
+    
+    // Способ 2: Попытка получить из initData (если доступен)
+    if (tg.initData) {
+        try {
+            const initDataObj = new URLSearchParams(tg.initData);
+            const userStr = initDataObj.get('user');
+            if (userStr) {
+                const userObj = JSON.parse(decodeURIComponent(userStr));
+                return userObj;
+            }
+        } catch (e) {
+            console.warn('Не удалось распарсить initData:', e);
+        }
+    }
+    
+    // Способ 3: Попытка получить из startParam
+    if (tg.startParam) {
+        try {
+            const startParam = JSON.parse(decodeURIComponent(tg.startParam));
+            if (startParam.user_id) {
+                return { id: startParam.user_id };
+            }
+        } catch (e) {
+            // Игнорируем ошибки
+        }
+    }
+    
+    return null;
+}
+
 // Получение данных пользователя
-const user = tg?.initDataUnsafe?.user;
+const user = getUserData();
 
 // Функция переключения вкладок
 function showTab(tabName) {
@@ -154,9 +192,19 @@ function sendDataWithLog(data, actionName) {
     clearSendLog();
     showSendLog();
     
+    // Получаем актуальные данные пользователя перед отправкой
+    const currentUser = getUserData();
+    const userId = currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id || 'N/A';
+    
     addLogEntry('info', '🚀 Начало отправки', actionName);
     addLogEntry('info', '⏰ Время', new Date().toLocaleString('ru-RU'));
-    addLogEntry('info', '👤 User ID', user?.id || 'N/A');
+    addLogEntry('info', '👤 User ID', userId);
+    if (currentUser) {
+        addLogEntry('info', '👤 Username', currentUser.username ? `@${currentUser.username}` : 'N/A');
+        addLogEntry('info', '👤 Full Name', currentUser.first_name || currentUser.last_name 
+            ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() 
+            : 'N/A');
+    }
     addLogEntry('info', '📤 Action', data.action || 'N/A');
     
     // Логируем все данные
@@ -295,9 +343,10 @@ if (meetingForm) {
             const startDateTime = document.getElementById('meeting-start').value.replace('T', ' ');
             const endDateTime = document.getElementById('meeting-end').value.replace('T', ' ');
 
+            const currentUser = getUserData();
             const data = {
                 action: 'create_meeting',
-                user_id: user?.id,
+                user_id: currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id,
                 type: document.getElementById('meeting-type').value,
                 title: document.getElementById('meeting-title').value,
                 start: startDateTime,
@@ -449,9 +498,10 @@ if (taskForm) {
             const dueDate = dueDateInput.value ? new Date(dueDateInput.value).toISOString() : '';
 
             // Формирование данных для всех задач
+            const currentUser = getUserData();
             const data = {
                 action: 'create_tasks',
-                user_id: user?.id,
+                user_id: currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id,
                 tasks: tasks.map(task => ({
                     title: task.title,
                     content: task.content || '',
@@ -563,9 +613,10 @@ if (noteForm) {
         showLoader();
 
         try {
+            const currentUser = getUserData();
             const data = {
                 action: 'create_note',
-                user_id: user?.id,
+                user_id: currentUser?.id || user?.id || tg?.initDataUnsafe?.user?.id,
                 title: document.getElementById('note-title').value,
                 content: document.getElementById('note-content').value || ''
             };
